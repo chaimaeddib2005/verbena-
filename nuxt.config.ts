@@ -29,8 +29,8 @@ export default defineNuxtConfig({render: {
     '/api/wordpress/**': {
       cache: { 
         swr: true,
-        maxAge: 1,//86400, // 1 day
-        staleMaxAge: 1//172800 // 2 days fallback
+        maxAge: 86400, // 1 day
+        staleMaxAge: 172800 // 2 days fallback
       }
     },
     // Pre-render home page
