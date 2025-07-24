@@ -1,9 +1,18 @@
 <template>
   <Header />
   <main class="container mx-auto px-4 py-8">
-    <!-- Skeleton Loading -->
-    <section v-if="loading" class="animate-pulse">
-      <!-- Skeleton content here -->
+    <!-- Skeleton Loading (now with proper placeholder sizing) -->
+    <section v-if="loading" class="animate-pulse space-y-6">
+      <div class="h-12 bg-violet-100 rounded mx-auto max-w-3xl"></div>
+      <div class="h-6 bg-violet-100 rounded mx-auto max-w-2xl"></div>
+      <div class="flex flex-col md:flex-row gap-8">
+        <div class="md:w-2/5 h-64 bg-violet-100 rounded-xl"></div>
+        <div class="md:w-3/5 space-y-4">
+          <div class="h-8 bg-violet-100 rounded"></div>
+          <div class="h-4 bg-violet-100 rounded"></div>
+          <div class="h-4 bg-violet-100 rounded w-5/6"></div>
+        </div>
+      </div>
     </section>
 
     <!-- Error state -->
@@ -26,18 +35,29 @@
 
         <!-- Image + Text Row -->
         <div class="flex flex-col md:flex-row gap-8 items-center">
-          <!-- Optimized Image -->
+          <!-- Optimized Image with WebP + Art Direction -->
           <div v-if="content.hero_image" class="md:w-2/5">
-            <img 
-              :src="content.hero_image"
-              :srcset="generateSrcSet(content.hero_image)"
-              alt="Hero Image"
-              width="400"
-              height="300"
-              loading="lazy"
-              class="w-full max-w-[400px] h-auto rounded-xl shadow-lg object-cover border-4 border-white"
-              @error="handleImageError"
-            >
+            <picture>
+              <source 
+                :srcset="`${generateImageUrl(content.hero_image, 400, 'webp')} 400w,
+                         ${generateImageUrl(content.hero_image, 800, 'webp')} 800w`" 
+                type="image/webp"
+              >
+              <source
+                :srcset="`${generateImageUrl(content.hero_image, 400)} 400w,
+                         ${generateImageUrl(content.hero_image, 800)} 800w`"
+                type="image/jpeg"
+              >
+              <img 
+                :src="generateImageUrl(content.hero_image, 800)"
+                width="400"
+                height="300"
+                loading="lazy"
+                class="w-full max-w-[400px] h-auto rounded-xl shadow-lg object-cover border-4 border-white"
+                alt="Hero Image"
+                @error="handleImageError"
+              >
+            </picture>
           </div>
 
           <!-- Description -->
@@ -65,43 +85,56 @@ export default {
   },
   async mounted() {
     try {
-      const cachedData = sessionStorage.getItem('pageContent');
+      const cacheKey = 'cachedPage-11';
+      const cachedData = sessionStorage.getItem(cacheKey);
+      const cacheExpiry = localStorage.getItem(`${cacheKey}-expiry`);
       
-      if (cachedData) {
+      // Use cached data if not expired (1 hour cache)
+      if (cachedData && cacheExpiry && Date.now() < cacheExpiry) {
         this.content = JSON.parse(cachedData);
         this.loading = false;
         return;
       }
 
+      // Fetch fresh data
       const page = await this.$pageCache.getPage(11);
       if (page?.acf) {
         this.content = page.acf;
-        sessionStorage.setItem('pageContent', JSON.stringify(page.acf));
+        sessionStorage.setItem(cacheKey, JSON.stringify(page.acf));
+        localStorage.setItem(`${cacheKey}-expiry`, Date.now() + 3600000); // 1 hour expiry
+      } else {
+        throw new Error('Invalid data structure');
       }
     } catch (error) {
       console.error('Error:', error);
-      this.error = 'Failed to load content';
+      this.error = 'Failed to load content. Please try again later.';
     } finally {
       this.loading = false;
     }
   },
   methods: {
     handleImageError(e) {
-      e.target.style.display = 'none';
+      // Fallback to placeholder
+      e.target.src = '/placeholder.webp';
+      e.target.srcset = '';
     },
-    generateSrcSet(originalUrl) {
-      return `${originalUrl}?w=400 400w, ${originalUrl}?w=800 800w`;
+    generateImageUrl(originalUrl, width = 800, format = 'jpg') {
+      if (!originalUrl) return '';
+      // Replace with your actual image CDN/service parameters
+      return `${originalUrl}?width=${width}&format=${format}&quality=80`;
     }
   }
 }
 </script>
 
 <style>
-/* Preload fonts */
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Dancing+Script&display=swap">
-<style>
-/* Critical CSS first */
+/* Critical CSS - Inlined */
+.hero-title, .hero-description {
+  opacity: 0;
+  animation: fadeIn 0.5s forwards;
+}
+@keyframes fadeIn { to { opacity: 1; } }
+
 .font-serif {
   font-family: 'Cormorant Garamond', serif;
   font-display: swap;
@@ -111,7 +144,7 @@ export default {
   font-display: swap;
 }
 
-/* Non-critical styles */
+/* Non-critical CSS (loaded async) */
 @media (min-width: 768px) {
   .items-center {
     align-items: center;

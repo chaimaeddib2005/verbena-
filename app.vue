@@ -10,6 +10,7 @@ useHead({
   titleTemplate: (title) => title ? `${title} | Verbena` : 'Verbena - tous ce que vous devez savoir sur les fleurs',
   
   link: [
+    { rel: 'preload', href: '/hero-image.webp', as: 'image' },
     { rel: 'icon', type: 'image/png', href: '/favicon.ico' },
     {
       rel: 'stylesheet',

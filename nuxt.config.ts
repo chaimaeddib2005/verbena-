@@ -1,5 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig({
+export default defineNuxtConfig({render: {
+    resourceHints: false // Disables prefetch for non-critical JS
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor': ['vue', 'vue-router'] // Separate vendor JS
+          }
+        }
+      }
+    }
+  },
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
   ssr: true,
