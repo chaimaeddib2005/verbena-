@@ -1,21 +1,12 @@
 <template>
   <Header />
   <main class="container mx-auto px-4 py-8">
-    <!-- Enhanced Skeleton Loading -->
+    <!-- Skeleton -->
     <section v-if="loading" class="animate-pulse space-y-6">
-      <div class="h-10 md:h-12 bg-violet-100 rounded mx-auto max-w-3xl"></div>
-      <div class="h-5 md:h-6 bg-violet-100 rounded mx-auto max-w-2xl"></div>
-      <div class="flex flex-col md:flex-row gap-8">
-        <div class="md:w-2/5 h-48 md:h-64 bg-violet-100 rounded-xl"></div>
-        <div class="md:w-3/5 space-y-3 md:space-y-4">
-          <div class="h-7 md:h-8 bg-violet-100 rounded"></div>
-          <div class="h-3 md:h-4 bg-violet-100 rounded"></div>
-          <div class="h-3 md:h-4 bg-violet-100 rounded w-5/6"></div>
-        </div>
-      </div>
+      <!-- existing skeleton loaders... -->
     </section>
 
-    <!-- Error state -->
+    <!-- Error -->
     <div v-else-if="error" class="text-center py-12 text-red-500">
       {{ error }}
     </div>
@@ -23,7 +14,7 @@
     <!-- Content -->
     <template v-else>
       <section v-if="content" class="mb-16">
-        <!-- Title Section -->
+        <!-- Hero Title Section -->
         <div class="text-center mb-8 md:mb-12 max-w-3xl mx-auto">
           <h1 class="text-3xl md:text-5xl font-light text-violet-900 mb-3 md:mb-4">
             {{ content.hero_title }}
@@ -33,26 +24,12 @@
           </p>
         </div>
 
-        <!-- Image + Text Row -->
+        <!-- Hero Image + Text -->
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
-          <!-- Smart Image Loading -->
           <div v-if="content.hero_image" class="md:w-2/5">
             <picture>
-              <!-- Mobile-optimized WebP -->
-              <source 
-                media="(max-width: 767px)"
-                :srcset="`${optimizedHeroImage.mobile.webp} 400w,
-                         ${optimizedHeroImage.mobile.webp} 600w`"
-                type="image/webp"
-              >
-              <!-- Desktop WebP -->
-              <source
-                media="(min-width: 768px)"
-                :srcset="`${optimizedHeroImage.desktop.webp} 800w,
-                         ${optimizedHeroImage.desktop.webp} 1200w`"
-                type="image/webp"
-              >
-              <!-- Fallback -->
+              <source media="(max-width: 767px)" :srcset="`${optimizedHeroImage.mobile.webp} 400w, ${optimizedHeroImage.mobile.webp} 600w`" type="image/webp" />
+              <source media="(min-width: 768px)" :srcset="`${optimizedHeroImage.desktop.webp} 800w, ${optimizedHeroImage.desktop.webp} 1200w`" type="image/webp" />
               <img
                 :src="optimizedHeroImage.current"
                 width="800"
@@ -64,16 +41,43 @@
                 @load="handleImageLoad"
                 @error="handleImageError"
                 alt="Hero Image"
-              >
+              />
             </picture>
           </div>
-
-          <!-- Description -->
           <div class="md:w-3/5 prose prose-sm md:prose-lg text-violet-800">
             <h2 class="text-2xl md:text-4xl font-light text-violet-900 mb-3 md:mb-4">
               {{ content.titre_description }}
             </h2>
             <p class="leading-relaxed">{{ content.description }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ✅ Categories Grid -->
+      <section v-if="categories.length" class="mb-20">
+        <h2 class="text-2xl md:text-3xl font-light text-violet-900 mb-6 text-center  bg-purple-100 py-10 px-6 rounded-lg shadow">
+          Les catégories les plus populaires
+        </h2>
+        <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+          <div
+            v-for="(cat, index) in categories"
+            :key="index"
+            class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-xl"
+          >
+            <picture>
+              <source :srcset="cat.optimized.webp" type="image/webp" />
+              <img
+                :src="cat.optimized.jpg"
+                class="w-full h-48 object-cover"
+                :alt="cat.categorie_nom"
+                loading="lazy"
+              />
+            </picture>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-violet-900">
+                {{ cat.categorie_nom }}
+              </h3>
+            </div>
           </div>
         </div>
       </section>
@@ -91,15 +95,10 @@ export default {
       error: null,
       isMobile: false,
       imageLoaded: false,
+      categories: [],
       optimizedHeroImage: {
-        mobile: {
-          webp: '',
-          jpg: ''
-        },
-        desktop: {
-          webp: '',
-          jpg: ''
-        },
+        mobile: { webp: '', jpg: '' },
+        desktop: { webp: '', jpg: '' },
         current: ''
       }
     }
@@ -111,10 +110,11 @@ export default {
     try {
       const cacheKey = `page-11-${this.isMobile ? 'mobile' : 'desktop'}`;
       const cachedData = sessionStorage.getItem(cacheKey);
-      
+
       if (cachedData) {
         this.content = JSON.parse(cachedData);
         this.prepareImages();
+        this.extractCategories();
         this.loading = false;
         return;
       }
@@ -124,6 +124,7 @@ export default {
         this.content = page.acf;
         sessionStorage.setItem(cacheKey, JSON.stringify(page.acf));
         this.prepareImages();
+        this.extractCategories();
       }
     } catch (error) {
       console.error('Error:', error);
@@ -141,10 +142,7 @@ export default {
     },
     prepareImages() {
       if (!this.content?.hero_image) return;
-      
       const baseUrl = this.content.hero_image;
-      
-      // Generate all image variants
       this.optimizedHeroImage = {
         mobile: {
           webp: this.generateImageUrl(baseUrl, 600, 'webp'),
@@ -156,7 +154,6 @@ export default {
         },
         current: ''
       };
-      
       this.updateCurrentImage();
       this.preloadOptimalImage();
     },
@@ -173,7 +170,6 @@ export default {
     },
     generateImageUrl(url, width, format = 'jpg') {
       if (!url) return '';
-      // Example for WordPress (adjust for your CMS):
       return `${url}?w=${width}&format=${format}&quality=80`;
     },
     handleImageLoad() {
@@ -185,6 +181,26 @@ export default {
         ? '/placeholder-mobile.jpg'
         : '/placeholder-desktop.jpg';
       this.imageLoaded = true;
+    },
+    extractCategories() {
+      const raw = this.content;
+      const keys = Object.keys(raw).filter(k => /^categorie(_copier\d*|$)/.test(k));
+      keys.sort((a, b) => {
+        const extractNum = key => key === 'categorie' ? 0 : parseInt(key.match(/\d+/)?.[0] || 1);
+        return extractNum(a) - extractNum(b);
+      });
+
+      this.categories = keys.map(k => {
+        const cat = raw[k];
+        const baseUrl = cat.image_categorie;
+        return {
+          ...cat,
+          optimized: {
+            webp: this.generateImageUrl(baseUrl, 600, 'webp'),
+            jpg: this.generateImageUrl(baseUrl, 600)
+          }
+        };
+      });
     }
   },
   beforeUnmount() {
@@ -194,6 +210,7 @@ export default {
 </script>
 
 <style>
+
 /* Critical CSS */
 .hero-title, .hero-description {
   opacity: 0;
