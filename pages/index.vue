@@ -1,44 +1,55 @@
 <template>
   <Header />
   <main class="container mx-auto px-4 py-8">
-    <!-- Add v-if to prevent rendering when content isn't loaded -->
-    <section v-if="content && content.hero_title">
-      <!-- Centered Title & Description -->
-      <div class="text-center mb-12 max-w-3xl mx-auto">
-        <h1 class="text-4xl md:text-5xl font-light text-violet-900 mb-4">
-          {{ content.hero_title }}
-        </h1>
-        <p v-if="content.hero_description" class="text-xl text-violet-700 font-serif italic">
-          {{ content.hero_description }}
-        </p>
-      </div>
-
-      <!-- Image + Text Row -->
-      <div v-if="content.hero_image || content.description" class="flex flex-col md:flex-row gap-8 items-center">
-        <!-- Smaller Left-aligned Image -->
-        <div v-if="content.hero_image" class="md:w-2/5">
-          <img 
-            :src="content.hero_image" 
-            alt="Hero Image"
-            class="w-full max-w-[400px] h-auto rounded-xl shadow-lg object-cover border-4 border-white"
-            @error="handleImageError"
-          >
-        </div>
-
-        <!-- Middle-aligned Description -->
-        <div v-if="content.description" class="md:w-3/5 prose prose-lg text-violet-800 self-center">
-          <h1 class="text-4xl md:text-5xl font-light text-violet-900 mb-4">
-          {{ content.titre_description }}
-        </h1>
-          <p class="leading-relaxed">{{ content.description }}</p>
-        </div>
-      </div>
+    <!-- Skeleton Loading -->
+    <section v-if="loading" class="animate-pulse">
+      <!-- Skeleton content here -->
     </section>
 
-    <!-- Loading state -->
-    <div v-else class="text-center py-12">
-      <p class="text-violet-600">Loading content...</p>
+    <!-- Error state -->
+    <div v-else-if="error" class="text-center py-12 text-red-500">
+      {{ error }}
     </div>
+
+    <!-- Content -->
+    <template v-else>
+      <section v-if="content" class="mb-16">
+        <!-- Title Section -->
+        <div class="text-center mb-12 max-w-3xl mx-auto">
+          <h1 class="text-4xl md:text-5xl font-light text-violet-900 mb-4">
+            {{ content.hero_title }}
+          </h1>
+          <p v-if="content.hero_description" class="text-xl text-violet-700 font-serif italic">
+            {{ content.hero_description }}
+          </p>
+        </div>
+
+        <!-- Image + Text Row -->
+        <div class="flex flex-col md:flex-row gap-8 items-center">
+          <!-- Optimized Image -->
+          <div v-if="content.hero_image" class="md:w-2/5">
+            <img 
+              :src="content.hero_image"
+              :srcset="generateSrcSet(content.hero_image)"
+              alt="Hero Image"
+              width="400"
+              height="300"
+              loading="lazy"
+              class="w-full max-w-[400px] h-auto rounded-xl shadow-lg object-cover border-4 border-white"
+              @error="handleImageError"
+            >
+          </div>
+
+          <!-- Description -->
+          <div class="md:w-3/5 prose prose-lg text-violet-800">
+            <h2 class="text-3xl md:text-4xl font-light text-violet-900 mb-4">
+              {{ content.titre_description }}
+            </h2>
+            <p class="leading-relaxed">{{ content.description }}</p>
+          </div>
+        </div>
+      </section>
+    </template>
   </main>
   <Footer />
 </template>
@@ -54,15 +65,22 @@ export default {
   },
   async mounted() {
     try {
+      const cachedData = sessionStorage.getItem('pageContent');
+      
+      if (cachedData) {
+        this.content = JSON.parse(cachedData);
+        this.loading = false;
+        return;
+      }
+
       const page = await this.$pageCache.getPage(11);
       if (page?.acf) {
         this.content = page.acf;
-      } else {
-        throw new Error('Invalid page data structure');
+        sessionStorage.setItem('pageContent', JSON.stringify(page.acf));
       }
     } catch (error) {
-      console.error('Error fetching content:', error);
-      this.error = error.message;
+      console.error('Error:', error);
+      this.error = 'Failed to load content';
     } finally {
       this.loading = false;
     }
@@ -70,25 +88,30 @@ export default {
   methods: {
     handleImageError(e) {
       e.target.style.display = 'none';
-      console.warn('Image failed to load');
+    },
+    generateSrcSet(originalUrl) {
+      return `${originalUrl}?w=400 400w, ${originalUrl}?w=800 800w`;
     }
   }
 }
 </script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Dancing+Script&display=swap');
 
+<style>
+/* Preload fonts */
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&family=Dancing+Script&display=swap">
+<style>
+/* Critical CSS first */
 .font-serif {
   font-family: 'Cormorant Garamond', serif;
+  font-display: swap;
 }
 .italic {
   font-family: 'Dancing Script', cursive;
-}
-.prose {
-  max-width: 100%;
+  font-display: swap;
 }
 
-/* Ensure vertical centering */
+/* Non-critical styles */
 @media (min-width: 768px) {
   .items-center {
     align-items: center;
