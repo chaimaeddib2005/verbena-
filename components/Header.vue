@@ -12,7 +12,7 @@
   <span class="brand-name">Verbena</span>
 </NuxtLink>
 
-          <!-- Mobile menu button -->
+          <!-- Mobile menu button  -->
           <div class="md:hidden">
             <button 
               @click="toggleMenu"

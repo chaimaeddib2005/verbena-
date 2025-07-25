@@ -146,7 +146,7 @@
           </div>
         </div>
 
-        <!-- Blog Posts Error -->
+        <!-- Blog Posts Error ok ok ok -->
         <div v-else-if="blogError" class="text-center text-red-600 py-8">
           {{ blogError }}
         </div>
