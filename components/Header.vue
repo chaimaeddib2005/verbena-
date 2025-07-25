@@ -3,14 +3,14 @@
     <div class="header-container">
       <nav class="nav-wrapper">
         <div class="flex items-center justify-between w-full">
-          <div class="logo-container flex items-center space-x-3">
-            <img 
-              src="/favicon.ico" 
-              alt="Logo"
-              class="logo-image hover:scale-105 transition-transform"
-            />
-            <span class="brand-name">Verbena</span>
-          </div>
+          <NuxtLink to="/" class="logo-container flex items-center space-x-3">
+  <img 
+    src="/favicon.ico" 
+    alt="Logo"
+    class="logo-image hover:scale-105 transition-transform"
+  />
+  <span class="brand-name">Verbena</span>
+</NuxtLink>
 
           <!-- Mobile menu button -->
           <div class="md:hidden">
