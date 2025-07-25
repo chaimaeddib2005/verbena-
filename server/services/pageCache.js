@@ -15,7 +15,7 @@ export class PageCache {
     }
     
     try {
-      const pageIds = [11] // Add more IDs if needed
+      const pageIds = [11,59] // Add more IDs if needed
 
       const pages = await Promise.all(
         pageIds.map(id =>
