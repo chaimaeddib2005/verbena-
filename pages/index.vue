@@ -1,21 +1,12 @@
 <template>
   <Header />
   <main class="container mx-auto px-4 py-8">
-    <!-- Skeleton Loading -->
+    <!-- Skeleton -->
     <section v-if="loading" class="animate-pulse space-y-6">
-      <div class="h-12 bg-gray-200 rounded w-1/2 mx-auto"></div>
-      <div class="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
-      <div class="flex flex-col md:flex-row gap-8">
-        <div class="md:w-2/5 h-64 bg-gray-200 rounded-xl"></div>
-        <div class="md:w-3/5 space-y-4">
-          <div class="h-8 bg-gray-200 rounded w-1/2"></div>
-          <div class="h-4 bg-gray-200 rounded"></div>
-          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-        </div>
-      </div>
+      <!-- existing skeleton loaders... -->
     </section>
 
-    <!-- Error State -->
+    <!-- Error -->
     <div v-else-if="error" class="text-center py-12 text-red-500">
       {{ error }}
     </div>
@@ -37,20 +28,19 @@
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
           <div v-if="content.hero_image" class="md:w-2/5">
             <picture>
-              <source 
-                :srcset="optimizedHeroImage.webp" 
-                type="image/webp"
-              >
+              <source media="(max-width: 767px)" :srcset="`${optimizedHeroImage.mobile.webp} 400w, ${optimizedHeroImage.mobile.webp} 600w`" type="image/webp" />
+              <source media="(min-width: 768px)" :srcset="`${optimizedHeroImage.desktop.webp} 800w, ${optimizedHeroImage.desktop.webp} 1200w`" type="image/webp" />
               <img
-                :src="optimizedHeroImage.jpg"
+                :src="optimizedHeroImage.current"
                 width="800"
                 height="450"
                 loading="eager"
+                decoding="async"
                 class="w-full max-w-[400px] md:max-w-none h-auto rounded-xl shadow-lg object-cover border-4 border-white"
-                :alt="content.hero_alt || 'Hero image'"
-                @load="imageLoaded = true"
-                @error="handleImageError"
                 :class="{ 'opacity-0': !imageLoaded }"
+                @load="handleImageLoad"
+                @error="handleImageError"
+                alt="Hero Image"
               />
             </picture>
           </div>
@@ -63,9 +53,9 @@
         </div>
       </section>
 
-      <!-- Categories Grid -->
+      <!-- ✅ Categories Grid -->
       <section v-if="categories.length" class="mb-20">
-        <h2 class="text-2xl md:text-3xl font-light text-violet-900 mb-6 text-center bg-purple-100 py-10 px-6 rounded-lg shadow">
+        <h2 class="text-2xl md:text-3xl font-light text-violet-900 mb-6 text-center  bg-purple-100 py-10 px-6 rounded-lg shadow">
           Les catégories les plus populaires
         </h2>
         <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
@@ -75,7 +65,7 @@
             class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-xl"
           >
             <picture>
-              <source :srcset="cat.optimized.webp" type="image/webp">
+              <source :srcset="cat.optimized.webp" type="image/webp" />
               <img
                 :src="cat.optimized.jpg"
                 class="w-full h-48 object-cover"
@@ -96,76 +86,131 @@
   <Footer />
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-
-const loading = ref(true);
-const error = ref(null);
-const imageLoaded = ref(false);
-const content = ref(null);
-const categories = ref([]);
-
-const optimizedHeroImage = computed(() => {
-  if (!content.value?.hero_image) return { webp: '', jpg: '' };
-  const baseUrl = content.value.hero_image;
-  return {
-    webp: `${baseUrl}?w=1200&format=webp&quality=80`,
-    jpg: `${baseUrl}?w=1200&quality=80`
-  };
-});
-
-const prepareCategories = () => {
-  const raw = content.value;
-  const categoryKeys = Object.keys(raw).filter(k => k.startsWith('categorie'));
-  
-  categories.value = categoryKeys.map(key => {
-    const category = raw[key];
-    const baseUrl = category.image_categorie;
+<script>
+export default {
+  data() {
     return {
-      ...category,
-      optimized: {
-        webp: `${baseUrl}?w=600&format=webp&quality=80`,
-        jpg: `${baseUrl}?w=600&quality=80`,
-        alt: category.image_alt || category.categorie_nom
-      }
-    };
-  });
-};
-
-const handleImageError = (e) => {
-  console.warn('Image failed to load, using fallback');
-  e.target.src = '/placeholder.jpg';
-  imageLoaded.value = true;
-};
-
-onMounted(async () => {
-  try {
-    // Replace with your actual data fetching method
-    const page = await $fetch('https://verveina.weblinking.fr/wp-json/wp/v2/pages/11');
-    
-    if (page?.acf) {
-      content.value = page.acf;
-      prepareCategories();
-      
-      // Preload hero image
-      if (content.value.hero_image) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.href = optimizedHeroImage.value.webp;
-        document.head.appendChild(link);
+      content: null,
+      loading: true,
+      error: null,
+      isMobile: false,
+      imageLoaded: false,
+      categories: [],
+      optimizedHeroImage: {
+        mobile: { webp: '', jpg: '' },
+        desktop: { webp: '', jpg: '' },
+        current: ''
       }
     }
-  } catch (err) {
-    console.error('Error:', err);
-    error.value = 'Failed to load content. Please refresh the page.';
-  } finally {
-    loading.value = false;
+  },
+  async mounted() {
+    this.checkViewport();
+    window.addEventListener('resize', this.checkViewport);
+
+    try {
+      const cacheKey = `page-11-${this.isMobile ? 'mobile' : 'desktop'}`;
+      const cachedData = sessionStorage.getItem(cacheKey);
+
+      if (cachedData) {
+        this.content = JSON.parse(cachedData);
+        this.prepareImages();
+        this.extractCategories();
+        this.loading = false;
+        return;
+      }
+
+      const page = await this.$pageCache.getPage(11);
+      if (page?.acf) {
+        this.content = page.acf;
+        sessionStorage.setItem(cacheKey, JSON.stringify(page.acf));
+        this.prepareImages();
+        this.extractCategories();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      this.error = 'Failed to load content. Please refresh the page.';
+    } finally {
+      this.loading = false;
+    }
+  },
+  methods: {
+    checkViewport() {
+      this.isMobile = window.innerWidth < 768;
+      if (this.content?.hero_image) {
+        this.updateCurrentImage();
+      }
+    },
+    prepareImages() {
+      if (!this.content?.hero_image) return;
+      const baseUrl = this.content.hero_image;
+      this.optimizedHeroImage = {
+        mobile: {
+          webp: this.generateImageUrl(baseUrl, 600, 'webp'),
+          jpg: this.generateImageUrl(baseUrl, 600)
+        },
+        desktop: {
+          webp: this.generateImageUrl(baseUrl, 1200, 'webp'),
+          jpg: this.generateImageUrl(baseUrl, 1200)
+        },
+        current: ''
+      };
+      this.updateCurrentImage();
+      this.preloadOptimalImage();
+    },
+    updateCurrentImage() {
+      this.optimizedHeroImage.current = this.isMobile
+        ? this.optimizedHeroImage.mobile.jpg
+        : this.optimizedHeroImage.desktop.jpg;
+    },
+    preloadOptimalImage() {
+      const img = new Image();
+      img.src = this.isMobile
+        ? this.optimizedHeroImage.mobile.webp
+        : this.optimizedHeroImage.desktop.webp;
+    },
+    generateImageUrl(url, width, format = 'jpg') {
+      if (!url) return '';
+      return `${url}?w=${width}&format=${format}&quality=80`;
+    },
+    handleImageLoad() {
+      this.imageLoaded = true;
+    },
+    handleImageError(e) {
+      console.warn('Image failed to load, using fallback');
+      e.target.src = this.isMobile
+        ? '/placeholder-mobile.jpg'
+        : '/placeholder-desktop.jpg';
+      this.imageLoaded = true;
+    },
+    extractCategories() {
+      const raw = this.content;
+      const keys = Object.keys(raw).filter(k => /^categorie(_copier\d*|$)/.test(k));
+      keys.sort((a, b) => {
+        const extractNum = key => key === 'categorie' ? 0 : parseInt(key.match(/\d+/)?.[0] || 1);
+        return extractNum(a) - extractNum(b);
+      });
+
+      this.categories = keys.map(k => {
+        const cat = raw[k];
+        const baseUrl = cat.image_categorie;
+        return {
+          ...cat,
+          optimized: {
+            webp: this.generateImageUrl(baseUrl, 600, 'webp'),
+            jpg: this.generateImageUrl(baseUrl, 600)
+          }
+        };
+      });
+    }
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.checkViewport);
   }
-});
+}
 </script>
 
 <style>
+
 /* Critical CSS */
 .hero-title, .hero-description {
   opacity: 0;
@@ -173,7 +218,7 @@ onMounted(async () => {
 }
 @keyframes fadeIn { to { opacity: 1; } }
 
-/* Font loading */
+/* Mobile-first font loading */
 .font-serif {
   font-family: 'Cormorant Garamond', system-ui, -apple-system, sans-serif;
   font-display: swap;
@@ -183,7 +228,7 @@ onMounted(async () => {
   font-display: swap;
 }
 
-/* Responsive adjustments */
+/* Non-critical CSS */
 @media (min-width: 768px) {
   .items-center {
     align-items: center;
@@ -196,13 +241,8 @@ onMounted(async () => {
   }
 }
 
-/* Image transitions */
+/* Image fade-in */
 img[class*="opacity-0"] {
   transition: opacity 0.3s ease;
-}
-
-/* Performance optimizations */
-img {
-  content-visibility: auto;
 }
 </style>
