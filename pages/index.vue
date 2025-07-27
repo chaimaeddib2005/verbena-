@@ -3,11 +3,59 @@
   <main class="container mx-auto px-4 py-8">
     <!-- Skeleton -->
     <section v-if="loading" class="animate-pulse space-y-6">
-      <!-- existing skeleton loaders... -->
+      <!-- Hero Title Skeleton -->
+      <div class="text-center mb-8 md:mb-12 max-w-3xl mx-auto">
+        <div class="h-12 md:h-16 bg-gray-200 rounded mb-4 w-3/4 mx-auto"></div>
+        <div class="h-6 bg-gray-200 rounded w-1/2 mx-auto"></div>
+      </div>
+      
+      <!-- Hero Content Skeleton -->
+      <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center mb-16">
+        <div class="md:w-2/5">
+          <div class="aspect-[16/9] bg-gray-200 rounded-xl w-full max-w-[400px] md:max-w-none mx-auto"></div>
+        </div>
+        <div class="md:w-3/5 space-y-4">
+          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div class="h-4 bg-gray-200 rounded w-4/5"></div>
+        </div>
+      </div>
+      
+      <!-- Categories Skeleton -->
+      <div class="mb-20">
+        <div class="h-16 bg-gray-200 rounded-lg mb-6"></div>
+        <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+          <div v-for="i in 6" :key="i" class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="aspect-[4/3] w-full bg-gray-200"></div>
+            <div class="p-4 space-y-3">
+              <div class="h-6 w-3/4 bg-gray-200 rounded"></div>
+              <div class="h-4 w-1/2 bg-gray-200 rounded"></div>
+              <div class="h-3 w-2/3 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Blog Posts Skeleton -->
+      <div class="mb-20">
+        <div class="h-16 bg-gray-200 rounded-lg mb-6"></div>
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow overflow-hidden h-80">
+            <div class="aspect-[4/3] w-full bg-gray-200"></div>
+            <div class="p-5 space-y-3">
+              <div class="h-6 w-3/4 bg-gray-200 rounded"></div>
+              <div class="h-4 w-full bg-gray-200 rounded"></div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded"></div>
+              <div class="h-4 w-1/3 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Error -->
-    <div v-else-if="error" class="text-center py-12 text-red-500">
+    <div v-else-if="error" class="text-center py-12 text-red-500 min-h-[400px] flex items-center justify-center">
       {{ error }}
     </div>
 
@@ -16,10 +64,10 @@
       <section v-if="content" class="mb-16">
         <!-- Hero Title Section -->
         <div class="text-center mb-8 md:mb-12 max-w-3xl mx-auto">
-          <h1 class="text-3xl md:text-5xl font-light text-violet-900 mb-3 md:mb-4">
+          <h1 class="text-3xl md:text-5xl font-light text-violet-900 mb-3 md:mb-4 hero-title">
             {{ content.hero_title }}
           </h1>
-          <p v-if="content.hero_description" class="text-lg md:text-xl text-violet-700 font-serif italic">
+          <p v-if="content.hero_description" class="text-lg md:text-xl text-violet-700 font-serif italic hero-description">
             {{ content.hero_description }}
           </p>
         </div>
@@ -27,22 +75,30 @@
         <!-- Hero Image + Text -->
         <div class="flex flex-col md:flex-row gap-6 md:gap-8 items-center">
           <div v-if="content.hero_image" class="md:w-2/5">
-            <picture>
-              <source media="(max-width: 767px)" :srcset="`${optimizedHeroImage.mobile.webp} 400w, ${optimizedHeroImage.mobile.webp} 600w`" type="image/webp" />
-              <source media="(min-width: 768px)" :srcset="`${optimizedHeroImage.desktop.webp} 800w, ${optimizedHeroImage.desktop.webp} 1200w`" type="image/webp" />
-              <img
-                :src="optimizedHeroImage.current"
-                width="800"
-                height="450"
-                loading="eager"
-                decoding="async"
-                class="w-full max-w-[400px] md:max-w-none h-auto rounded-xl shadow-lg object-cover border-4 border-white"
-                :class="{ 'opacity-0': !imageLoaded }"
-                @load="handleImageLoad"
-                @error="handleImageError"
-                alt="Hero Image"
-              />
-            </picture>
+            <!-- Reserved space container with aspect ratio -->
+            <div class="relative w-full max-w-[400px] md:max-w-none mx-auto aspect-[16/9] bg-gray-100 rounded-xl overflow-hidden shadow-lg border-4 border-white">
+              <picture>
+                <source media="(max-width: 767px)" :srcset="`${optimizedHeroImage.mobile.webp} 400w, ${optimizedHeroImage.mobile.webp} 600w`" type="image/webp" />
+                <source media="(min-width: 768px)" :srcset="`${optimizedHeroImage.desktop.webp} 800w, ${optimizedHeroImage.desktop.webp} 1200w`" type="image/webp" />
+                <img
+                  :src="optimizedHeroImage.current"
+                  width="800"
+                  height="450"
+                  loading="eager"
+                  decoding="async"
+                  class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                  :class="{ 'opacity-0': !imageLoaded }"
+                  @load="handleImageLoad"
+                  @error="handleImageError"
+                  alt="Hero Image"
+                />
+              </picture>
+              
+              <!-- Loading placeholder -->
+              <div v-if="!imageLoaded" class="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+                <div class="w-16 h-16 bg-gray-300 rounded-full animate-pulse"></div>
+              </div>
+            </div>
           </div>
           <div class="md:w-3/5 prose prose-sm md:prose-lg text-violet-800">
             <h2 class="text-2xl md:text-4xl font-light text-violet-900 mb-3 md:mb-4">
@@ -53,61 +109,79 @@
         </div>
       </section>
 
-      <!-- ✅ Categories Grid - Now Dynamic with Shortcode Handling -->
+      <!-- Categories Grid - Fixed Layout Shift -->
       <section class="mb-20">
         <h2 class="text-2xl md:text-3xl font-light text-violet-900 mb-6 text-center bg-purple-100 py-10 px-6 rounded-lg shadow">
           Les catégories les plus populaires
         </h2>
         
-        <!-- Categories Loading -->
-        <div v-if="categoriesLoading" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-          <div v-for="i in 6" :key="i" class="bg-white rounded-xl shadow-md overflow-hidden">
-            <div class="h-48 w-full bg-gray-200 animate-pulse"></div>
-            <div class="p-4">
-              <div class="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-              <div class="h-4 w-1/2 bg-gray-200 rounded mt-2 animate-pulse"></div>
+        <!-- Fixed height container to prevent layout shift -->
+        <div class="min-h-[800px] md:min-h-[600px]">
+          <!-- Categories Loading with proper spacing -->
+          <div v-if="categoriesLoading" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            <div v-for="i in 6" :key="i" class="bg-white rounded-xl shadow-md overflow-hidden">
+              <!-- Fixed aspect ratio for image placeholder -->
+              <div class="aspect-[4/3] w-full bg-gray-200 animate-pulse"></div>
+              <div class="p-4 space-y-3">
+                <div class="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-3 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Categories Error -->
-        <div v-else-if="categoriesError" class="text-center text-red-600 py-8">
-          {{ categoriesError }}
-        </div>
+          <!-- Categories Error -->
+          <div v-else-if="categoriesError" class="text-center text-red-600 py-8 min-h-[400px] flex items-center justify-center">
+            {{ categoriesError }}
+          </div>
 
-        <!-- Categories Content -->
-        <div v-else class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-          <NuxtLink
-            v-for="category in topCategories"
-            :key="category.id"
-            :to="`/blog/${category.slug}`"
-            class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-xl transform hover:scale-105 cursor-pointer"
-          >
-            <div class="relative">
-              <img
-                :src="category.featuredImage"
-                class="w-full h-48 object-cover"
-                :alt="category.name"
-                loading="lazy"
-                @error="handleCategoryImageError"
-              />
-              <!-- Post count badge -->
-              <div class="absolute top-4 right-4 bg-violet-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                {{ category.postCount }} article{{ category.postCount > 1 ? 's' : '' }}
+          <!-- Categories Content with reserved space -->
+          <div v-else class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            <NuxtLink
+              v-for="category in topCategories"
+              :key="category.id"
+              :to="`/blog/${category.slug}`"
+              class="bg-white rounded-xl shadow-md overflow-hidden transition hover:shadow-xl transform hover:scale-105 cursor-pointer"
+            >
+              <!-- Fixed aspect ratio container for images -->
+              <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                <img
+                  :src="category.featuredImage"
+                  class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                  :class="{ 'opacity-0': !category.imageLoaded }"
+                  :alt="category.name"
+                  loading="lazy"
+                  @load="() => handleCategoryImageLoad(category)"
+                  @error="(e) => handleCategoryImageError(e, category)"
+                />
+                
+                <!-- Loading state for individual images -->
+                <div v-if="!category.imageLoaded" class="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+                  <div class="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
+                </div>
+                
+                <!-- Post count badge -->
+                <div class="absolute top-4 right-4 bg-violet-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  {{ category.postCount }} article{{ category.postCount > 1 ? 's' : '' }}
+                </div>
               </div>
-            </div>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold text-violet-900 mb-2">
-                {{ processWordPressContent(category.name) }}
-              </h3>
-              <p v-if="category.description" class="text-sm text-gray-600 line-clamp-2">
-                {{ processWordPressContent(category.description) }}
-              </p>
-              <div v-if="category.latestPost" class="text-xs text-violet-500 mt-2">
-                Dernier: "{{ processWordPressContent(category.latestPost.title.rendered).substring(0, 40) }}..."
+              
+              <!-- Fixed height content area -->
+              <div class="p-4 h-32 flex flex-col justify-between">
+                <div>
+                  <h3 class="text-lg font-semibold text-violet-900 mb-2 line-clamp-2">
+                    {{ processWordPressContent(category.name) }}
+                  </h3>
+                  <p v-if="category.description" class="text-sm text-gray-600 line-clamp-2">
+                    {{ processWordPressContent(category.description) }}
+                  </p>
+                </div>
+                <div v-if="category.latestPost" class="text-xs text-violet-500 mt-2 line-clamp-1">
+                  Dernier: "{{ processWordPressContent(category.latestPost.title.rendered).substring(0, 40) }}..."
+                </div>
               </div>
-            </div>
-          </NuxtLink>
+            </NuxtLink>
+          </div>
         </div>
         
         <!-- Blog Categories Navigation Button -->
@@ -124,55 +198,75 @@
         </div>
       </section>
 
-      <!-- ✅ Latest Blog Posts Section with Shortcode Handling -->
+      <!-- Latest Blog Posts Section with Fixed Layout -->
       <section class="mb-20">
         <h2 class="text-2xl md:text-3xl font-light text-violet-900 mb-6 text-center bg-purple-100 py-10 px-6 rounded-lg shadow">
           Nos derniers articles
         </h2>
         
-        <!-- Blog Posts Loading -->
-        <div v-if="blogLoading" class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow overflow-hidden flex flex-col">
-            <div class="h-48 w-full bg-gray-200 animate-pulse"></div>
-            <div class="p-5 flex-1 flex flex-col">
-              <div class="h-6 w-3/4 bg-gray-200 rounded mb-3 animate-pulse"></div>
-              <div class="space-y-2">
-                <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-                <div class="h-4 w-4/5 bg-gray-200 rounded animate-pulse"></div>
+        <!-- Fixed minimum height to prevent layout shift -->
+        <div class="min-h-[600px]">
+          <!-- Blog Posts Loading -->
+          <div v-if="blogLoading" class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div v-for="i in 4" :key="i" class="bg-white rounded-xl shadow overflow-hidden flex flex-col h-80">
+              <!-- Fixed aspect ratio for image -->
+              <div class="aspect-[4/3] w-full bg-gray-200 animate-pulse"></div>
+              <div class="p-5 flex-1 flex flex-col space-y-3">
+                <div class="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                <div class="space-y-2 flex-1">
+                  <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                  <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  <div class="h-4 w-4/5 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
               </div>
-              <div class="h-4 w-1/3 bg-gray-200 rounded mt-4 animate-pulse"></div>
             </div>
           </div>
-        </div>
 
-        <!-- Blog Posts Error -->
-        <div v-else-if="blogError" class="text-center text-red-600 py-8">
-          {{ blogError }}
-        </div>
+          <!-- Blog Posts Error -->
+          <div v-else-if="blogError" class="text-center text-red-600 py-8 min-h-[400px] flex items-center justify-center">
+            {{ blogError }}
+          </div>
 
-        <!-- Blog Posts Content -->
-        <div v-else class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <NuxtLink
-            v-for="post in latestPosts"
-            :key="post.id"
-            :to="`/blog/post/${post.slug}`"
-            class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col cursor-pointer transform hover:scale-105"
-          >
-            <img
-              v-if="post._embedded?.['wp:featuredmedia']"
-              :src="post._embedded['wp:featuredmedia'][0].source_url"
-              alt="image"
-              class="h-48 w-full object-cover"
-            />
-            <div class="p-5 flex-1 flex flex-col">
-              <h3 class="text-lg font-semibold mb-2 line-clamp-2 text-violet-900" v-html="processWordPressContent(post.title.rendered, true)"></h3>
-              <div class="text-sm text-gray-600 mb-4 line-clamp-3" v-html="processWordPressContent(post.excerpt.rendered, true)"></div>
-              <span class="text-violet-600 mt-auto text-sm font-medium hover:underline">
-                Lire l'article →
-              </span>
-            </div>
-          </NuxtLink>
+          <!-- Blog Posts Content with consistent heights -->
+          <div v-else class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <NuxtLink
+              v-for="post in latestPosts"
+              :key="post.id"
+              :to="`/blog/post/${post.slug}`"
+              class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col cursor-pointer transform hover:scale-105 h-80"
+            >
+              <!-- Fixed aspect ratio image container -->
+              <div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                <img
+                  v-if="post._embedded?.['wp:featuredmedia']"
+                  :src="post._embedded['wp:featuredmedia'][0].source_url"
+                  alt="image"
+                  class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                  :class="{ 'opacity-0': !post.imageLoaded }"
+                  loading="lazy"
+                  @load="() => handlePostImageLoad(post)"
+                  @error="(e) => handlePostImageError(e, post)"
+                />
+                
+                <!-- Loading placeholder for post images -->
+                <div v-if="!post.imageLoaded" class="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+                  <div class="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              
+              <!-- Fixed height content area -->
+              <div class="p-5 flex-1 flex flex-col justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-semibold mb-2 line-clamp-2 text-violet-900" v-html="processWordPressContent(post.title.rendered, true)"></h3>
+                  <div class="text-sm text-gray-600 mb-4 line-clamp-3 flex-1" v-html="processWordPressContent(post.excerpt.rendered, true)"></div>
+                </div>
+                <span class="text-violet-600 text-sm font-medium hover:underline">
+                  Lire l'article →
+                </span>
+              </div>
+            </NuxtLink>
+          </div>
         </div>
 
         <!-- View All Blog Posts Button -->
@@ -463,9 +557,23 @@ export default {
         : '/placeholder-desktop.jpg';
       this.imageLoaded = true;
     },
-    handleCategoryImageError(event) {
+    handleCategoryImageLoad(category) {
+      // Set imageLoaded flag for specific category (Vue 3 way)
+      category.imageLoaded = true;
+    },
+    handleCategoryImageError(event, category) {
       // Fallback to placeholder image if category image fails to load
       event.target.src = '/placeholder-category.jpg';
+      category.imageLoaded = true;
+    },
+    handlePostImageLoad(post) {
+      // Set imageLoaded flag for specific post (Vue 3 way)
+      post.imageLoaded = true;
+    },
+    handlePostImageError(event, post) {
+      // Fallback to placeholder image if post image fails to load
+      event.target.src = '/placeholder-post.jpg';
+      post.imageLoaded = true;
     },
     extractCategories() {
       // Keep existing method for backward compatibility
@@ -523,7 +631,8 @@ export default {
                 ...category,
                 featuredImage: featuredImage || '/placeholder-category.jpg',
                 postCount: category.count,
-                latestPost: post
+                latestPost: post,
+                imageLoaded: false // Initialize loading state
               };
             } catch (err) {
               console.warn(`Error fetching posts for category ${category.slug}:`, err);
@@ -531,7 +640,8 @@ export default {
                 ...category,
                 featuredImage: '/placeholder-category.jpg',
                 postCount: category.count,
-                latestPost: null
+                latestPost: null,
+                imageLoaded: false // Initialize loading state
               };
             }
           })
@@ -563,7 +673,12 @@ export default {
           }
         });
 
-        this.latestPosts = response;
+        // Initialize imageLoaded state for each post
+        this.latestPosts = response.map(post => ({
+          ...post,
+          imageLoaded: false
+        }));
+
       } catch (error) {
         console.error('Error fetching blog posts:', error);
         this.blogError = 'Erreur lors du chargement des articles.';
@@ -615,6 +730,13 @@ img[class*="opacity-0"] {
 }
 
 /* Line clamp utilities for blog posts and categories */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -633,5 +755,71 @@ img[class*="opacity-0"] {
 .processed-content {
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+/* Aspect ratio utilities for consistent layouts */
+.aspect-\[16\/9\] {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-\[4\/3\] {
+  aspect-ratio: 4 / 3;
+}
+
+/* Prevent layout shift during image loading */
+.aspect-\[16\/9\], .aspect-\[4\/3\] {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Smooth transitions for hover effects */
+.transform {
+  transition: transform 0.3s ease;
+}
+
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+/* Loading animation for skeletons */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fixed height utilities to prevent layout shift */
+.min-h-\[400px\] {
+  min-height: 400px;
+}
+
+.min-h-\[600px\] {
+  min-height: 600px;
+}
+
+.min-h-\[800px\] {
+  min-height: 800px;
+}
+
+.h-80 {
+  height: 20rem;
+}
+
+.h-32 {
+  height: 8rem;
+}
+
+/* Ensure consistent card heights */
+@media (min-width: 768px) {
+  .min-h-\[800px\] {
+    min-height: 600px;
+  }
 }
 </style>

@@ -35,8 +35,10 @@ export default defineNuxtConfig({render: {
     },
     // Pre-render home page
     '/': { prerender: true },
-    // Cache blog pages for 1 hour
-    '/blog/**': { swr: 3600 }
+    // Cache blog pages for 1 day
+    '/blog/**': { swr: 86400
+
+     }
   },
   plugins: [
     '~/plugins/pageCache.js'],
