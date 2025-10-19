@@ -1,3 +1,8 @@
+This is a flower blog website created via nuxt.js(for the frontend) and wordpress as a headless CMS for backend and content managemenet.
+You can visit the blog using the link: https://verbena-eight.vercel.app/
+
+
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
