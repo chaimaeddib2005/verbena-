@@ -1,11 +1,25 @@
-This is a flower blog website created via nuxt.js(for the frontend) and wordpress as a headless CMS for backend and content managemenet.
-You can visit the blog using the link: https://verbena-eight.vercel.app/
 
+# Verbena Flower Blog
 
+Verbena is a modern flower blog built with **Nuxt.js** for the frontend and **WordPress** as a headless CMS for content management.
+It was developed during my internship at **Weblinking SARL**
 
-# Nuxt Minimal Starter
+🔗 **Live Demo:** [https://verbena-eight.vercel.app/](https://verbena-eight.vercel.app/)
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Features
+
+- Headless CMS with WordPress  
+- Responsive design for desktop and mobile  
+- Category pages showing images, descriptions, post counts, and latest posts  
+- Dynamic blog posts with rich content  
+- SEO-friendly structure  
+
+## Tech Stack
+
+- **Frontend:** Nuxt.js  
+- **Backend / CMS:** WordPress (Headless)  
+- **Hosting:** Vercel  
+- **Content API:** WordPress REST API  
 
 ## Setup
 
@@ -77,4 +91,4 @@ yarn preview
 bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Developped 
